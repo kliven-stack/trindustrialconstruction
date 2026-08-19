@@ -19,12 +19,15 @@ const redirectSources = new Set(redirects.map((r) => r.source.replace(/\/$/, '')
  * 2026-08-19. Remove an entry here the moment the client asks for the link to be
  * fixed — anything not listed is a migration regression.
  */
-const BROKEN_ON_PRODUCTION = new Set([
-  '/live-event-3',
-  '/getquote',
-  '/blog',
-  '/blog/coldplunge/affordable-cold-plunge',
-]);
+const BROKEN_ON_PRODUCTION = new Set([]);
+
+/**
+ * Hosts the markup links to that no longer answer. `trindustrial.wpengine.com` is
+ * the site's old WP Engine address: the nav and body copy on most pages still point
+ * at it, and every one of those URLs 404s on production today. Cloned as-is and
+ * reported here so the count cannot quietly drift (see the README).
+ */
+const DEAD_HOSTS = new Set(['trindustrial.wpengine.com']);
 
 async function* walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -39,7 +42,9 @@ const exists = async (p) => { try { await stat(p); return true; } catch { return
 const resolveTarget = async (url) => {
   const clean = url.split('#')[0].split('?')[0];
   if (!clean || clean.startsWith('data:') || clean.startsWith('mailto:') || clean.startsWith('tel:')) return true;
-  if (/^https?:\/\//.test(clean) || clean.startsWith('//')) return true; // external, not our problem
+  if (/^https?:\/\//.test(clean) || clean.startsWith('//')) {
+    try { return !DEAD_HOSTS.has(new URL(clean, 'https://x.invalid').host); } catch { return true; }
+  }
   if (!clean.startsWith('/')) return true; // relative — none are emitted, but skip rather than guess
   const target = path.join(DIST, decodeURIComponent(clean));
   if (await exists(target)) {
@@ -87,8 +92,12 @@ for (const file of cssFiles) {
 
 console.log(`${htmlFiles.length} pages, ${cssFiles.length} stylesheets, ${checked} references checked`);
 
-const expected = [...broken].filter(([url]) => BROKEN_ON_PRODUCTION.has(url.replace(/\/$/, '')));
-const regressions = [...broken].filter(([url]) => !BROKEN_ON_PRODUCTION.has(url.replace(/\/$/, '')));
+const knownBad = ([url]) => {
+  if (BROKEN_ON_PRODUCTION.has(url.replace(/\/$/, ''))) return true;
+  try { return DEAD_HOSTS.has(new URL(url, 'https://x.invalid').host); } catch { return false; }
+};
+const expected = [...broken].filter(knownBad);
+const regressions = [...broken].filter((entry) => !knownBad(entry));
 
 for (const [url, pages] of expected) {
   console.log(`  known-broken (404s on WordPress too): ${url} — ${pages.size} page(s)`);

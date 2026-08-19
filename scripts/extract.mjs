@@ -219,7 +219,7 @@ for (const file of files) {
   // Yoast writes the whole SEO head — canonical, Open Graph, Twitter card and the
   // schema.org graph. Rather than re-deriving any of it, keep the block verbatim and
   // re-emit it; only the origin is templated, so a preview deployment is self-consistent.
-  const seoHead = $('head meta[property^="og:"], head meta[name^="twitter:"], head meta[property^="article:"], head script.yoast-schema-graph')
+  const seoHead = $('head meta[property^="og:"], head meta[name^="twitter:"], head meta[property^="article:"], head script.yoast-schema-graph, head meta[name="google-site-verification"]')
     .map((i, el) => $.html(el).split(ORIGIN).join('__ORIGIN__').split(ORIGIN_ESC).join('__ORIGIN_ESC__'))
     .get().join('\n');
 

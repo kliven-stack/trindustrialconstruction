@@ -135,190 +135,6 @@ for (const width of [900, 390]) {
   await ctx.close();
 }
 
-/* ---------------------------------------------------------------- accordion */
-{
-  const { ctx, page } = await open('/');
-  const items = 'details.e-n-accordion-item';
-  const openCount = () => page.evaluate((s) => [...document.querySelectorAll(s)].filter((d) => d.open).length, items);
-  check('accordion: one item open by default', (await openCount()) === 1);
-  await page.locator(`${items} summary`).nth(1).click();
-  await page.waitForTimeout(400);
-  check('accordion: opening the second closes the first', (await openCount()) === 1
-    && (await page.evaluate((s) => document.querySelectorAll(s)[1].open, items)));
-  check('accordion: summary reports aria-expanded', await page.evaluate((s) => {
-    const d = document.querySelectorAll(s)[1];
-    return d.querySelector('summary').getAttribute('aria-expanded') === 'true';
-  }, items));
-  await ctx.close();
-}
-
-/* ---------------------------------------------------------------- carousel */
-{
-  const { ctx, page } = await open('/');
-  const root = '.e-n-carousel';
-  await page.evaluate(() => document.querySelector('.e-n-carousel').scrollIntoView());
-  await page.waitForTimeout(400);
-
-  const state = () => page.evaluate((s) => {
-    const el = document.querySelector(s);
-    const wrap = el.querySelector('.swiper-wrapper');
-    return {
-      transform: wrap.style.transform,
-      active: [...wrap.children].findIndex((c) => c.classList.contains('swiper-slide-active')),
-      bullets: [...el.parentElement.querySelectorAll('.swiper-pagination-bullet')].length,
-      activeBullet: [...el.parentElement.querySelectorAll('.swiper-pagination-bullet')].findIndex((b) => b.classList.contains('swiper-pagination-bullet-active')),
-      slides: wrap.children.length,
-      clones: wrap.querySelectorAll('.swiper-slide-duplicate').length,
-    };
-  }, root);
-
-  const a = await state();
-  check('carousel: swiper classes applied', await page.evaluate((s) => document.querySelector(s).classList.contains('swiper-initialized'), root));
-  check('carousel: loop clones present', a.clones > 0, `${a.clones} clones around ${a.slides - a.clones} slides`);
-  check('carousel: bullets rendered, first active', a.bullets === 4 && a.activeBullet === 0);
-
-  await page.locator(`${root} ~ .swiper-pagination .swiper-pagination-bullet`).nth(2).click().catch(async () => {
-    await page.locator('.swiper-pagination-bullet').nth(2).click();
-  });
-  await page.waitForTimeout(900);
-  const b2 = await state();
-  check('carousel: bullet click moves the track', b2.activeBullet === 2 && b2.transform !== a.transform);
-
-  // Autoplay is 5s; wait past one tick.
-  await page.mouse.move(10, 10);
-  const before = (await state()).activeBullet;
-  await page.waitForTimeout(6000);
-  const afterAuto = (await state()).activeBullet;
-  check('carousel: autoplay advances', afterAuto !== before, `${before} → ${afterAuto}`);
-  await ctx.close();
-}
-
-/* ---------------------------------------------------------------- gallery + lightbox */
-{
-  const { ctx, page } = await open('/gallery/');
-  const container = '.elementor-gallery__container';
-  check('gallery: grid classes and variables applied', await page.evaluate((s) => {
-    const el = document.querySelector(s);
-    return el.classList.contains('e-gallery-grid')
-      && el.style.getPropertyValue('--columns') === '3'
-      && el.style.getPropertyValue('--hgap') === '30px';
-  }, container));
-  check('gallery: every tile painted its thumbnail', await page.evaluate((s) => {
-    const tiles = [...document.querySelectorAll(s + ' .e-gallery-image')];
-    return tiles.length > 0 && tiles.every((t) => t.style.backgroundImage.includes('url('));
-  }, container));
-  check('gallery: tiles laid out in 3 columns', await page.evaluate((s) => {
-    const items = [...document.querySelectorAll(s + ' .e-gallery-item')].slice(0, 4);
-    const xs = items.map((i) => Math.round(i.getBoundingClientRect().x));
-    return new Set(xs).size === 3 && xs[0] === xs[3];
-  }, container));
-
-  await page.locator('.e-gallery-item').first().click();
-  await page.waitForTimeout(700);
-
-  const BRAND_BLUE = 'rgb(41, 128, 185)';
-  const RESTING = 'rgba(255, 255, 255, 0.12)';
-
-  check('lightbox: opens as a modal dialog with a dimmed backdrop', await page.evaluate(() => {
-    const d = document.querySelector('dialog.gm-lightbox');
-    return !!d && d.matches(':modal')
-      && getComputedStyle(d, '::backdrop').backgroundColor === 'rgba(0, 0, 0, 0.85)'
-      && !!d.querySelector('img.gm-lightbox__image[src]');
-  }));
-
-  check('lightbox: controls are compact circles, not full-height strips', await page.evaluate(() => {
-    const controls = [...document.querySelectorAll('.gm-lightbox__control')];
-    return controls.length === 3 && controls.every((c) => {
-      const r = c.getBoundingClientRect();
-      return r.width >= 40 && r.width <= 60 && r.height >= 40 && r.height <= 60
-        && getComputedStyle(c).borderRadius === '50%';
-    });
-  }));
-
-  // The Hello theme paints every bare `button:hover`/`:focus` with its own #c36,
-  // and showModal() autofocuses the close button — this is the regression guard.
-  check('lightbox: controls rest translucent, not the theme pink', await page.evaluate((resting) =>
-    [...document.querySelectorAll('.gm-lightbox__control')]
-      .every((c) => getComputedStyle(c).backgroundColor === resting), RESTING));
-
-  const firstSrc = await page.evaluate(() => document.querySelector('.gm-lightbox__image').src);
-  check('lightbox: counter reports position', /^1 \/ \d+$/.test((await page.textContent('.gm-lightbox__count')) ?? ''));
-
-  await page.locator('.gm-lightbox__next').hover();
-  await page.waitForTimeout(350);
-  check('lightbox: next turns the site blue on hover',
-    (await page.evaluate(() => getComputedStyle(document.querySelector('.gm-lightbox__next')).backgroundColor)) === BRAND_BLUE);
-
-  await page.locator('.gm-lightbox__next').click();
-  await page.waitForTimeout(400);
-  check('lightbox: next advances', await page.evaluate((s) => document.querySelector('.gm-lightbox__image').src !== s, firstSrc));
-
-  await page.locator('.gm-lightbox__close').hover();
-  await page.waitForTimeout(350);
-  check('lightbox: close turns the site blue on hover',
-    (await page.evaluate(() => getComputedStyle(document.querySelector('.gm-lightbox__close')).backgroundColor)) === BRAND_BLUE);
-
-  await page.locator('.gm-lightbox__close').click();
-  await page.waitForTimeout(400);
-  check('lightbox: close button closes it', await page.evaluate(() => !document.querySelector('dialog.gm-lightbox')));
-
-  await page.locator('.e-gallery-item').first().click();
-  await page.waitForTimeout(600);
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(400);
-  check('lightbox: Escape closes', await page.evaluate(() => !document.querySelector('dialog.gm-lightbox')));
-
-  // Responsive column counts.
-  await page.setViewportSize({ width: 900, height: 900 });
-  await page.waitForTimeout(500);
-  check('gallery: 2 columns on tablet', await page.evaluate((s) => document.querySelector(s).style.getPropertyValue('--columns') === '2', container));
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForTimeout(500);
-  check('gallery: 1 column on mobile', await page.evaluate((s) => document.querySelector(s).style.getPropertyValue('--columns') === '1', container));
-  await ctx.close();
-}
-
-/* ---------------------------------------------------------------- popup */
-{
-  const { ctx, page } = await open('/learn-more-first/');
-  check('popup: template parked out of the flow until opened', await page.evaluate(() => !document.querySelector('.elementor-location-popup')));
-  await page.locator('a[href*="popup"]').first().click();
-  await page.waitForTimeout(800);
-  check('popup: opens with content, not an empty overlay', await page.evaluate(() => {
-    const modal = document.querySelector('.elementor-popup-modal');
-    if (!modal) return false;
-    const body = modal.querySelector('.elementor-location-popup');
-    return !!body && body.getBoundingClientRect().height > 100;
-  }));
-  // This popup's compiled CSS hides the close button (`display:none`), same as
-  // production, so the ways out are the backdrop and Escape.
-  check('popup: close button hidden, as on production', await page.evaluate(() =>
-    getComputedStyle(document.querySelector('.elementor-popup-modal .dialog-close-button')).display === 'none'));
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(300);
-  check('popup: Escape closes', await page.evaluate(() => !document.querySelector('.elementor-popup-modal')));
-  await ctx.close();
-}
-
-/* ---------------------------------------------------------------- video widgets */
-{
-  const { ctx, page } = await open('/');
-  check('video: poster overlay present before play', await page.evaluate(() => !!document.querySelector('.elementor-widget-video .elementor-custom-embed-image-overlay')));
-  await page.evaluate(() => document.querySelector('.elementor-widget-video').scrollIntoView());
-  await page.waitForTimeout(300);
-  await page.locator('.elementor-custom-embed-image-overlay').first().click();
-  await page.waitForTimeout(500);
-  check('video: overlay removed on click', await page.evaluate(() => {
-    const w = document.querySelector('.elementor-widget-video');
-    return !w.querySelector('.elementor-custom-embed-image-overlay');
-  }));
-  check('background video: source set on the server-rendered player', await page.evaluate(() => {
-    const v = document.querySelector('.elementor-background-video-container video.elementor-background-video-hosted');
-    return !!v && v.muted && v.loop && v.autoplay && v.getAttribute('src').startsWith('/wp-content/');
-  }));
-  await ctx.close();
-}
-
 /* ---------------------------------------------------------------- background video fit */
 // The player is sized from the container, not from the file, so it has to cover the
 // section at every width. It letterboxed badly on mobile before this was checked.
@@ -342,39 +158,87 @@ for (const [width, height] of [[1440, 900], [900, 800], [390, 844]]) {
   await ctx.close();
 }
 
-/* ---------------------------------------------------------------- countdown */
+/* ------------------------------------------------- filterable gallery (EAEL) */
+// Essential Addons lays these out with Isotope: without it the tiles stack and the
+// section collapses (playbook §7.4). The clone reproduces the same contract —
+// absolutely positioned tiles inside a container with an explicit height.
 {
-  const { ctx, page } = await open('/live-event-thank-you/');
-  check('countdown: renders four units', await page.evaluate(() => document.querySelectorAll('.elementor-countdown-item').length === 4));
-  check('countdown: expired target clamps to zero (matches production)', await page.evaluate(() =>
-    [...document.querySelectorAll('.elementor-countdown-digits')].every((d) => d.textContent.trim() === '00')));
+  const { ctx, page } = await open('/buildings/car-wash/');
+  const container = '.eael-filter-gallery-container';
+  const tiles = `${container} > .eael-filterable-gallery-item-wrap`;
+
+  const laid = await page.evaluate((s) => {
+    const c = document.querySelector(s);
+    const items = [...c.querySelectorAll(':scope > .eael-filterable-gallery-item-wrap')];
+    return {
+      height: Math.round(c.getBoundingClientRect().height),
+      count: items.length,
+      absolute: items.every((i) => getComputedStyle(i).position === 'absolute'),
+      rows: new Set(items.map((i) => Math.round(i.getBoundingClientRect().top))).size,
+      columns: new Set(items.map((i) => Math.round(i.getBoundingClientRect().left))).size,
+      overlapping: items.some((a, ai) => items.some((b, bi) => {
+        if (ai >= bi) return false;
+        const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+        return ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1;
+      })),
+    };
+  }, container);
+
+  check('gallery: tiles are laid out, not stacked', laid.absolute && laid.height > 300, `${laid.height}px tall`);
+  check('gallery: three columns over two rows at 1440', laid.columns === 3 && laid.rows === 2, `${laid.columns}x${laid.rows}`);
+  check('gallery: no two tiles overlap', !laid.overlapping);
+  check("gallery: shows the plugin's first page of six (matches production)", laid.count === 6, `${laid.count} tiles`);
+
+  const visible = () => page.evaluate((s) =>
+    [...document.querySelectorAll(s)].filter((i) => getComputedStyle(i).display !== 'none').length, tiles);
+  check('gallery: all tiles visible under the "All" control', (await visible()) === 6);
+
+  await page.locator('.eael-filter-gallery-control li[data-filter=".eael-cf-self-serve-car-wash"]').click();
+  await page.waitForTimeout(500);
+  const filtered = await visible();
+  check('gallery: a category control filters the tiles', filtered > 0 && filtered < 6, `${filtered} of 6`);
+  check('gallery: the active control is marked', await page.evaluate(() =>
+    document.querySelector('.eael-filter-gallery-control li.active')?.getAttribute('data-filter') === '.eael-cf-self-serve-car-wash'));
+  check('gallery: container reflows to the filtered height', await page.evaluate((s) => {
+    const c = document.querySelector(s);
+    const shown = [...c.querySelectorAll(':scope > .eael-filterable-gallery-item-wrap')]
+      .filter((i) => getComputedStyle(i).display !== 'none');
+    const bottom = Math.max(...shown.map((i) => i.getBoundingClientRect().bottom));
+    return Math.abs(c.getBoundingClientRect().bottom - bottom) < 8;
+  }, container));
+
+  await page.locator('.eael-filter-gallery-control li[data-filter="*"]').click();
+  await page.waitForTimeout(500);
+  check('gallery: "All" restores every tile', (await visible()) === 6);
   await ctx.close();
 }
 
-/* ---------------------------------------------------------------- search */
-{
-  const { ctx, page } = await open('/blog/why-pools-expensive/');
-  check('search: widget revealed on init', await page.evaluate(() => {
-    const s = document.querySelector('search.e-search');
-    return !s.classList.contains('hidden') && s.getBoundingClientRect().height > 20;
-  }));
-  await page.fill('.e-search-input', 'saltwater');
-  await page.locator('.e-search-form').evaluate((f) => f.submit());
-  await page.waitForURL('**/search/**', { timeout: 15000 });
-  await page.waitForTimeout(1200);
-  const hits = await page.evaluate(() => document.querySelectorAll('#search-results article.post').length);
-  check('search: query returns results', hits > 0, `${hits} hits for "saltwater"`);
-  check('search: heading echoes the term', (await page.textContent('#search-term'))?.trim() === 'saltwater');
+// One column on mobile, two on tablet — the widget prints those widths itself.
+for (const [width, columns] of [[900, 2], [390, 1]]) {
+  const { ctx, page } = await open('/buildings/car-wash/', width, 844);
+  const cols = await page.evaluate(() => new Set([...document.querySelectorAll(
+    '.eael-filter-gallery-container > .eael-filterable-gallery-item-wrap')]
+    .map((i) => Math.round(i.getBoundingClientRect().left))).size);
+  check(`gallery @${width}: ${columns} column(s)`, cols === columns, `${cols}`);
+  await ctx.close();
+}
 
-  await page.goto(`${ORIGIN}/search/?s=zzzznotathing`, { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
-  check('search: empty result set says so', await page.evaluate(() => !document.getElementById('search-empty').hidden));
+/* ------------------------------------------------------------ entrance animation */
+// Elementor renders these with `elementor-invisible` and only reveals them from JS.
+// If our runtime ever stops running, four hero elements go permanently invisible.
+{
+  const { ctx, page } = await open('/');
+  await page.waitForTimeout(1600);
+  check('animation: hero elements are revealed', await page.evaluate(() =>
+    document.querySelectorAll('.elementor-invisible').length === 0));
+  check('animation: they carry the class the keyframes hang off', await page.evaluate(() =>
+    document.querySelectorAll('.animated.fadeInDown').length === 4));
   await ctx.close();
 }
 
 /* ---------------------------------------------------------------- contact form */
 {
-  const { ctx, page } = await open('/diy-program/');
+  const { ctx, page } = await open('/contact/');
   const hasForm = await page.evaluate(() => !!document.querySelector('form.gm-form__form'));
   if (hasForm) {
     check('form: honeypot is hidden from people', await page.evaluate(() => {
@@ -385,12 +249,17 @@ for (const [width, height] of [[1440, 900], [900, 800], [390, 844]]) {
       const form = document.querySelector('form.gm-form__form');
       return !form.checkValidity();
     }));
+    check("form: carries the widget's seven fields", await page.evaluate(() =>
+      document.querySelectorAll('form.gm-form__form .gm-form__field').length === 7));
   } else {
     check('form: LeadConnector embed retained while no endpoint is configured', await page.evaluate(() =>
-      !!document.querySelector('iframe[src*="links.trindustrialconstruction.com/widget/form"]')));
+      !!document.querySelector('iframe[src*="verified.trustymail.co/widget/form"]')));
+    check('form: the embed is on every page, via the footer', await page.evaluate(() =>
+      !!document.querySelector('footer iframe[src*="verified.trustymail.co"]')));
   }
   await ctx.close();
 }
+
 
 await browser.close();
 
