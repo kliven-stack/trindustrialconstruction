@@ -1,0 +1,84 @@
+---
+/**
+ * Page shell for the cloned WordPress pages.
+ *
+ * The <head> reproduces the original's stylesheet cascade exactly: every handle the
+ * WordPress page linked, in the same order, served from public/wp/css/. Elementor's
+ * compiled per-post CSS is what makes the clone pixel-accurate, so it ships verbatim
+ * rather than being re-derived (playbook §2, §7.1).
+ */
+import type { PageRecord } from '../lib/pages';
+import { fragment } from '../lib/pages';
+import PageContent from '../components/PageContent.astro';
+import '../styles/global.css';
+
+interface Props {
+  page: PageRecord;
+}
+
+const { page } = Astro.props as Props;
+const site = Astro.site ?? new URL('https://trindustrialconstruction.com');
+const canonical = new URL(page.path, site).href;
+
+// Yoast's block is stored with the origin templated out, so a preview deployment
+// describes itself rather than production. The escaped spelling is the one inside
+// the JSON-LD graph.
+const seoHead = page.seoHead
+  .split('__ORIGIN_ESC__').join(site.origin.replace(/\//g, '\\/'))
+  .split('__ORIGIN__').join(site.origin);
+
+/**
+ * The two faces above the fold on every page: the kit's heading font (Roboto
+ * Condensed) and its body font (Open Sans). Both are Elementor's own local Google
+ * Fonts files, mirrored by scripts/build-fonts.mjs.
+ */
+const PRELOAD_FONTS = [
+  '/wp/fonts/robotocondensed-ievl2zhzi2ecn5jzbjeets9weq8-19k7dq.woff2',
+  '/wp/fonts/opensans-memvyags126mizpba-uvwbx2vvnxbbobj2ovts-muw.woff2',
+];
+---
+
+<!doctype html>
+<html lang={page.lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="profile" href="https://gmpg.org/xfn/11" />
+    {page.robots && <meta name="robots" content={page.robots} />}
+    <title set:html={page.title} />
+    {page.description && <meta name="description" content={page.description} />}
+    <link rel="canonical" href={canonical} />
+    <Fragment set:html={seoHead} />
+
+    {PRELOAD_FONTS.map((href) => (
+      <link rel="preload" as="font" type="font/woff2" href={href} crossorigin />
+    ))}
+
+    {page.css.map((css) => <link rel="stylesheet" href={`/wp/css/${css.name}.css`} />)}
+
+    {page.favicons.map((icon) => (
+      <link rel={icon.rel} href={icon.href} {...(icon.sizes ? { sizes: icon.sizes } : {})} />
+    ))}
+    {page.tile && <meta name="msapplication-TileImage" content={page.tile} />}
+
+    <slot name="head" />
+  </head>
+
+  <body class={page.bodyClass}>
+    {page.hasSkipLink && (
+      <a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+    )}
+
+    {page.header && <Fragment set:html={fragment(page.header)} />}
+
+    <slot>
+      <PageContent html={fragment(page.content)} />
+    </slot>
+
+    {/* Through PageContent, not a bare Fragment: the footer is where the lead
+        form lives on every page. */}
+    {page.footer && <PageContent html={fragment(page.footer)} />}
+
+    <script src="../scripts/elementor.js"></script>
+  </body>
+</html>

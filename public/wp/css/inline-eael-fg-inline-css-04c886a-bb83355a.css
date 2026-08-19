@@ -1,0 +1,13 @@
+@media only screen and (max-width: 2399px) {
+					.elementor-element.elementor-element-04c886a .eael-filterable-gallery-item-wrap {
+					        width: 33.333333333333%;
+					    }
+					}@media only screen and (max-width: 1024px) {
+					.elementor-element.elementor-element-04c886a  .eael-filterable-gallery-item-wrap {
+					        width: 50%;
+					    }
+					}@media only screen and (max-width: 767px) {
+					.elementor-element.elementor-element-04c886a  .eael-filterable-gallery-item-wrap {
+					        width: 100%;
+					    }
+					}

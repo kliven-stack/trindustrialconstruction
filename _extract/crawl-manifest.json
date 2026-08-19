@@ -1,0 +1,401 @@
+[
+  {
+    "url": "https://trindustrialconstruction.com/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/",
+    "slug": "index",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/athletic-facilities/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/athletic-facilities/",
+    "slug": "buildings__athletic-facilities",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/careers/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/careers/",
+    "slug": "careers",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/design-consultation/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/design-consultation/",
+    "slug": "services__design-consultation",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/design-build/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/design-build/",
+    "slug": "services__design-build",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/self-performance/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/self-performance/",
+    "slug": "services__self-performance",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/subcontracting/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/subcontracting/",
+    "slug": "services__subcontracting",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/construction-management-general-contracting/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/construction-management-general-contracting/",
+    "slug": "services__construction-management-general-contracting",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/services/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/services/",
+    "slug": "services",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/safety-1st/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/safety-1st/",
+    "slug": "safety-1st",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/about-us/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/about-us/",
+    "slug": "about-us",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/",
+    "slug": "locations",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/shelbyville-tn/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/shelbyville-tn/",
+    "slug": "locations__shelbyville-tn",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/industries/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/industries/",
+    "slug": "industries",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/automotive/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/automotive/",
+    "slug": "buildings__automotive",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/aviation/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/aviation/",
+    "slug": "buildings__aviation",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/child-care/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/child-care/",
+    "slug": "buildings__child-care",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/equestrian/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/equestrian/",
+    "slug": "buildings__equestrian",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/industrial/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/industrial/",
+    "slug": "buildings__industrial",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/rail-distribution-centers/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/rail-distribution-centers/",
+    "slug": "buildings__rail-distribution-centers",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/warehouse/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/warehouse/",
+    "slug": "buildings__warehouse",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/",
+    "slug": "buildings",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/commercial-storage-buildings/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/commercial-storage-buildings/",
+    "slug": "buildings__commercial-storage-buildings",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/airplane-hangar/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/airplane-hangar/",
+    "slug": "buildings__airplane-hangar",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/distribution-facility/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/distribution-facility/",
+    "slug": "buildings__distribution-facility",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/hazardous-material-facility/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/hazardous-material-facility/",
+    "slug": "buildings__hazardous-material-facility",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/equestrian-training-facility/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/equestrian-training-facility/",
+    "slug": "buildings__equestrian-training-facility",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/chemical-manufacturing/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/chemical-manufacturing/",
+    "slug": "buildings__chemical-manufacturing",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/equestrian-arenas/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/equestrian-arenas/",
+    "slug": "buildings__equestrian-arenas",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/helicopter-hanger/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/helicopter-hanger/",
+    "slug": "buildings__helicopter-hanger",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/manufacturing/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/manufacturing/",
+    "slug": "buildings__manufacturing",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/chemical-warehousing/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/chemical-warehousing/",
+    "slug": "buildings__chemical-warehousing",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/salt-storage/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/salt-storage/",
+    "slug": "buildings__salt-storage",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/gymnasium/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/gymnasium/",
+    "slug": "buildings__gymnasium",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/columbia-tn/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/columbia-tn/",
+    "slug": "locations__columbia-tn",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/hunstville-al/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/hunstville-al/",
+    "slug": "locations__hunstville-al",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/athen-al/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/athen-al/",
+    "slug": "locations__athen-al",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/decatur-al/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/decatur-al/",
+    "slug": "locations__decatur-al",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/locations/murfreesboro-tn/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/locations/murfreesboro-tn/",
+    "slug": "locations__murfreesboro-tn",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/daycare/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/daycare/",
+    "slug": "buildings__daycare",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/boat-storage/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/boat-storage/",
+    "slug": "buildings__boat-storage",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/buildings/car-wash/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/car-wash/",
+    "slug": "buildings__car-wash",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/contact/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/contact/",
+    "slug": "contact",
+    "redirect": false,
+    "fromSitemap": true
+  },
+  {
+    "url": "https://trindustrialconstruction.com/xmlrpc.php/",
+    "status": 403,
+    "finalUrl": "https://trindustrialconstruction.com/xmlrpc.php/",
+    "slug": "xmlrpc.php",
+    "redirect": false,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/building/industrial/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/industrial/",
+    "slug": "buildings__industrial",
+    "redirect": true,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/building/aviation/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/aviation/",
+    "slug": "buildings__aviation",
+    "redirect": true,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/building/athletic-facilities/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/athletic-facilities/",
+    "slug": "buildings__athletic-facilities",
+    "redirect": true,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/building/automotive/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/automotive/",
+    "slug": "buildings__automotive",
+    "redirect": true,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/building/car-wash/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/buildings/car-wash/",
+    "slug": "buildings__car-wash",
+    "redirect": true,
+    "fromSitemap": false
+  },
+  {
+    "url": "https://trindustrialconstruction.com/404/",
+    "status": 200,
+    "finalUrl": "https://trindustrialconstruction.com/404/",
+    "slug": "404",
+    "fromSitemap": false
+  }
+]

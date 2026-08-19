@@ -1,0 +1,40 @@
+/* Tailwind v4 — theme + utilities only, and only for the components we author.
+
+   Preflight is deliberately NOT imported: the cloned pages ship Elementor's own
+   compiled CSS from public/wp/css/, and a reset layered on top would change the
+   original rendering.
+
+   `source(none)` matters just as much. Tailwind's automatic content detection
+   scans every file in the project, including the ported WordPress fragments —
+   and WordPress class names collide with Tailwind utility names (`size-full` on
+   every full-size image figure, plus `hidden`, `container`, `block`, `table`,
+   `static`). Only our own components are scanned. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source '../components';
+@source '../pages';
+
+@theme {
+  /* Elementor kit 6 global colours (public/wp/css/elementor-post-6.css) */
+  --color-brand-primary: #ffffff;
+  --color-brand-secondary: #54595f;
+  --color-brand-text: #c5c5c5;
+  --color-brand-accent: #ee7b21;
+  --color-brand-accent-dark: #be621a;
+  --color-brand-ink: #101010;
+  --color-brand-panel: #222222;
+
+  /* Elementor kit typography globals */
+  --font-primary: 'Roboto Condensed', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+  --font-text: 'Open Sans', sans-serif;
+  --font-accent: 'Roboto Condensed', sans-serif;
+
+  /* Elementor breakpoints — base is mobile, md = tablet, lg = desktop */
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1025px;
+
+  /* The kit's boxed-section width */
+  --container-elementor: 1440px;
+}

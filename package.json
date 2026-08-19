@@ -1,0 +1,40 @@
+{
+  "name": "trindustrialconstruction",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "serve": "node scripts/serve.mjs",
+    "crawl": "node scripts/crawl.mjs",
+    "css": "node scripts/fetch-css.mjs",
+    "extract": "node scripts/extract.mjs",
+    "fonts": "node scripts/build-fonts.mjs",
+    "media": "node scripts/fetch-media.mjs",
+    "images": "node scripts/optimize-images.mjs",
+    "compare": "node scripts/compare.mjs",
+    "functional": "node scripts/functional.mjs",
+    "audit": "node scripts/audit.mjs",
+    "verify:form": "node scripts/verify-form.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.2.2",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "cheerio": "^1.2.0",
+    "playwright": "^1.62.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}

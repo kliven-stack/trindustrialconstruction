@@ -1,0 +1,39 @@
+---
+/**
+ * Renders a cloned page fragment, swapping the marked LeadConnector embed for
+ * our own static form when a Growthmap endpoint is configured.
+ *
+ * Astro components cannot be injected through `set:html`, so the fragment is
+ * split on the markers extract.mjs left around each embed and re-emitted around
+ * the component.
+ */
+import ContactForm from './ContactForm.astro';
+import { CONTACT_ENDPOINT, FORM_MODE } from '../config';
+
+interface Props { html: string }
+const { html } = Astro.props as Props;
+
+// Without an endpoint the original embed is the working form, so keep it.
+const useOwnForm = FORM_MODE === 'growthmap' && CONTACT_ENDPOINT !== '';
+
+/** Height of the widget being replaced, measured on the live site at 1440/900/390. */
+const HEIGHT = 1144;
+
+const MARKER = /<!--gm-form:contact:start-->[\s\S]*?<!--gm-form:contact:end-->/g;
+
+/** [html, form, html, form, …, html] */
+const parts: Array<{ html: string } | { form: true }> = [];
+let cursor = 0;
+for (const match of html.matchAll(MARKER)) {
+  parts.push({ html: html.slice(cursor, match.index) });
+  parts.push(useOwnForm ? { form: true } : { html: match[0] });
+  cursor = match.index + match[0].length;
+}
+parts.push({ html: html.slice(cursor) });
+---
+
+{parts.map((part) =>
+  'form' in part
+    ? <ContactForm minHeight={HEIGHT} />
+    : <Fragment set:html={part.html} />,
+)}

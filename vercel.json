@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+      ]
+    }
+  ],
+  "redirects": [
+    { "source": "/building/industrial", "destination": "/buildings/industrial/", "permanent": true },
+    { "source": "/building/aviation", "destination": "/buildings/aviation/", "permanent": true },
+    { "source": "/building/athletic-facilities", "destination": "/buildings/athletic-facilities/", "permanent": true },
+    { "source": "/building/automotive", "destination": "/buildings/automotive/", "permanent": true },
+    { "source": "/building/car-wash", "destination": "/buildings/car-wash/", "permanent": true },
+
+    { "source": "/sitemap_index.xml", "destination": "/sitemap-index.xml", "permanent": true },
+    { "source": "/page-sitemap.xml", "destination": "/sitemap-index.xml", "permanent": true },
+
+    { "source": "/feed", "destination": "/", "permanent": true },
+    { "source": "/comments/feed", "destination": "/", "permanent": true }
+  ]
+}
