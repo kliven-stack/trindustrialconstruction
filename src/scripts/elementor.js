@@ -121,10 +121,20 @@ function initSticky() {
 /* ------------------------------------------------------------------ *
  * Nav menu (SmartMenus replacement)
  *
- * Desktop: submenus open on hover after 250 ms and close 500 ms after the
+ * Both navs — the horizontal one and the burger panel — are SmartMenus instances
+ * on the live site, so both get the same annotations and the same click rule.
+ * Read off production:
+ *
+ *   click a parent whose submenu is CLOSED  → open it, do not follow the link
+ *   click a parent whose submenu is OPEN    → follow the link
+ *
+ * That matters: every parent here has a real href (`/services`, `/buildings/`),
+ * so a plain "navigate on click" makes the submenus unreachable on touch — the
+ * burger panel would jump to /services instead of expanding.
+ *
+ * Desktop additionally opens on hover after 250 ms and closes 500 ms after the
  * pointer leaves — the delay is what lets the pointer cross the gap between the
- * parent item and the submenu (playbook §3.11). Clicking a `href="#"` parent
- * toggles it, and a click anywhere else closes.
+ * parent item and the submenu (playbook §3.11).
  *
  * Mobile: the burger toggles `.elementor-active` on the toggle and drives the
  * dropdown's `--menu-height`; the dropdown itself is stretched to the viewport
@@ -150,19 +160,21 @@ function initNavMenu(widget) {
   if (toggle && dropdownNav) initToggle(toggle, dropdownNav, widget, stretch);
 }
 
-/** Annotates parent items the way SmartMenus does, then wires hover/click. */
-function initDesktopMenu(nav) {
+/**
+ * The annotations SmartMenus adds to a nav on init: an instance id on the list,
+ * and the `has-submenu` / id / aria pairing between each parent link and its
+ * submenu. The compiled CSS and assistive tech both key off these.
+ *
+ * @returns {Array<{li: Element, link: Element, sub: Element}>} the parent items.
+ */
+function annotateSubmenus(nav) {
   const root = nav.querySelector('ul.elementor-nav-menu');
-  if (!root) return;
+  if (!root) return [];
   const uid = `sm-${++menuUid}`;
   root.setAttribute('data-smartmenus-id', uid);
 
-  const parents = [...nav.querySelectorAll('li.menu-item-has-children')];
-  let openItem = null;
-  let showTimer = null;
-  let hideTimer = null;
-
-  parents.forEach((li, i) => {
+  const parents = [];
+  [...nav.querySelectorAll('li.menu-item-has-children')].forEach((li, i) => {
     const link = li.querySelector(':scope > a');
     const sub = li.querySelector(':scope > ul.sub-menu');
     if (!link || !sub) return;
@@ -178,93 +190,114 @@ function initDesktopMenu(nav) {
     sub.setAttribute('aria-hidden', 'true');
     sub.setAttribute('aria-labelledby', linkId);
     sub.setAttribute('aria-expanded', 'false');
-    sub.classList.add('sm-nowrap');
+    parents.push({ li, link, sub });
   });
+  return parents;
+}
 
-  const close = (li) => {
-    if (!li) return;
-    const link = li.querySelector(':scope > a');
-    const sub = li.querySelector(':scope > ul.sub-menu');
-    if (!link || !sub) return;
-    link.setAttribute('aria-expanded', 'false');
-    sub.setAttribute('aria-hidden', 'true');
-    sub.setAttribute('aria-expanded', 'false');
-    sub.setAttribute('style', CLOSED_SUBMENU_STYLE);
-    if (openItem === li) openItem = null;
+/** Marks a parent open or closed, aria included. `styleFor` differs per nav. */
+function setExpanded({ link, sub }, open, styleFor) {
+  link.setAttribute('aria-expanded', String(open));
+  sub.setAttribute('aria-hidden', String(!open));
+  sub.setAttribute('aria-expanded', String(open));
+  sub.setAttribute('style', styleFor(open));
+}
+
+const isOpen = ({ link }) => link.getAttribute('aria-expanded') === 'true';
+
+/**
+ * Wires the click rule shared by both navs: the first click opens, and only a
+ * click on an already-open parent follows the link. A parent whose href is a
+ * `#` placeholder never navigates.
+ */
+function wireParentClick(parent, styleFor, { onOpen, beforeOpen } = {}) {
+  parent.link.addEventListener('click', (event) => {
+    if (isOpen(parent)) {
+      if (parent.link.getAttribute('href') === '#') {
+        event.preventDefault();
+        setExpanded(parent, false, styleFor);
+      }
+      return; // open already — let the browser follow the link
+    }
+    event.preventDefault();
+    beforeOpen?.(parent);
+    setExpanded(parent, true, styleFor);
+    onOpen?.(parent);
+  });
+}
+
+function initDesktopMenu(nav) {
+  const parents = annotateSubmenus(nav);
+  if (!parents.length) return;
+  const styleFor = (open) => (open ? OPEN_SUBMENU_STYLE : CLOSED_SUBMENU_STYLE);
+
+  let openItem = null;
+  let showTimer = null;
+  let hideTimer = null;
+
+  const close = (parent) => {
+    if (!parent) return;
+    setExpanded(parent, false, styleFor);
+    if (openItem === parent) openItem = null;
   };
-
-  const open = (li) => {
-    const link = li.querySelector(':scope > a');
-    const sub = li.querySelector(':scope > ul.sub-menu');
-    if (!link || !sub) return;
-    if (openItem && openItem !== li) close(openItem);
-    link.setAttribute('aria-expanded', 'true');
-    sub.setAttribute('aria-hidden', 'false');
-    sub.setAttribute('aria-expanded', 'true');
-    sub.setAttribute('style', OPEN_SUBMENU_STYLE);
-    openItem = li;
+  const open = (parent) => {
+    if (openItem && openItem !== parent) close(openItem);
+    setExpanded(parent, true, styleFor);
+    openItem = parent;
   };
+  const cancelTimers = () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
 
-  const cancelTimers = () => {
-    clearTimeout(showTimer);
-    clearTimeout(hideTimer);
-  };
-
-  for (const li of parents) {
-    if (!li.querySelector(':scope > a') || !li.querySelector(':scope > ul.sub-menu')) continue;
-    li.addEventListener('mouseenter', () => {
+  for (const parent of parents) {
+    parent.li.addEventListener('mouseenter', () => {
       cancelTimers();
-      showTimer = setTimeout(() => open(li), SHOW_TIMEOUT);
+      showTimer = setTimeout(() => open(parent), SHOW_TIMEOUT);
     });
-    li.addEventListener('mouseleave', () => {
+    parent.li.addEventListener('mouseleave', () => {
       cancelTimers();
-      hideTimer = setTimeout(() => close(li), HIDE_TIMEOUT);
+      hideTimer = setTimeout(() => close(parent), HIDE_TIMEOUT);
     });
-    const link = li.querySelector(':scope > a');
-    link.addEventListener('click', (e) => {
-      // Parent items are `href="#"` placeholders; clicking them toggles.
-      if (link.getAttribute('href') === '#') e.preventDefault();
+    parent.li.addEventListener('focusout', (e) => {
+      if (parent.li.contains(e.relatedTarget)) return;
       cancelTimers();
-      if (openItem === li) close(li); else open(li);
+      hideTimer = setTimeout(() => close(parent), HIDE_TIMEOUT);
     });
-    li.addEventListener('focusout', (e) => {
-      if (li.contains(e.relatedTarget)) return;
+    // Keyboard focus only. A mouse press focuses the link before the click event
+    // fires, so opening on any focusin would leave the click handler looking at an
+    // already-open menu — and following the link instead of opening it.
+    parent.li.addEventListener('focusin', (e) => {
+      if (!e.target.matches?.(':focus-visible')) return;
       cancelTimers();
-      hideTimer = setTimeout(() => close(li), HIDE_TIMEOUT);
+      open(parent);
     });
-    li.addEventListener('focusin', () => { cancelTimers(); open(li); });
+    wireParentClick(parent, styleFor, {
+      beforeOpen: () => { cancelTimers(); if (openItem) close(openItem); },
+      onOpen: (p) => { openItem = p; },
+    });
   }
 
   document.addEventListener('click', (e) => {
-    if (openItem && !openItem.contains(e.target)) close(openItem);
+    if (openItem && !openItem.li.contains(e.target)) close(openItem);
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && openItem) close(openItem);
   });
 }
 
-/** The burger panel: submenus expand in flow, one click at a time. */
+/** The burger panel: submenus expand in flow, and the panel re-measures. */
 function initCollapsibleMenu(nav) {
-  for (const li of nav.querySelectorAll('li.menu-item-has-children')) {
-    const link = li.querySelector(':scope > a');
-    const sub = li.querySelector(':scope > ul.sub-menu');
-    if (!link || !sub) continue;
-    link.classList.add('has-submenu');
-    link.setAttribute('aria-haspopup', 'true');
-    link.setAttribute('aria-expanded', 'false');
-    sub.setAttribute('aria-hidden', 'true');
-    link.addEventListener('click', (e) => {
-      if (link.getAttribute('href') === '#') e.preventDefault();
-      const isOpen = sub.style.display === 'block';
-      sub.setAttribute('style', isOpen ? 'width: auto; display: none;' : 'width: auto; display: block;');
-      link.setAttribute('aria-expanded', String(!isOpen));
-      sub.setAttribute('aria-hidden', String(isOpen));
-    });
+  const styleFor = (open) => `width: auto; display: ${open ? 'block' : 'none'};`;
+  for (const parent of annotateSubmenus(nav)) {
+    setExpanded(parent, false, styleFor);
+    wireParentClick(parent, styleFor);
   }
 }
 
 function initToggle(toggle, dropdownNav, widget, stretch) {
   const list = dropdownNav.querySelector('ul.elementor-nav-menu');
+  // Elementor stamps the toggle's button semantics from JS, not from PHP.
+  toggle.setAttribute('role', 'button');
+  toggle.setAttribute('tabindex', '0');
+  toggle.setAttribute('aria-label', 'Menu Toggle');
 
   /** Elementor's "stretch" option pins the panel to the viewport width. */
   const place = () => {

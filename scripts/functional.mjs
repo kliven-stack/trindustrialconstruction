@@ -65,18 +65,21 @@ const open = async (path, width = 1440, height = 900) => {
   await page.waitForTimeout(700);
   check('nav: closes ~500ms after leaving, not instantly', stillOpenEarly && (await shown()) === 'none');
 
-  // Production behaviour (verified against the live site): hovering a parent opens
-  // it, so the click that follows toggles it shut, and the next click reopens it.
-  await fineMove(page, box.x + box.width / 2 - 6, box.y + box.height / 2);
-  await page.waitForTimeout(400);
-  const openOnHover = (await shown()) === 'block';
-  await page.mouse.down(); await page.mouse.up();
-  await page.waitForTimeout(350);
-  const closedByClick = (await shown()) === 'none';
-  await page.mouse.down(); await page.mouse.up();
-  await page.waitForTimeout(350);
-  check('nav: click toggles an open submenu shut, then reopens it',
-    openOnHover && closedByClick && (await shown()) === 'block');
+  // Production behaviour, read off the live site: every parent here has a real
+  // href, and SmartMenus opens the submenu on the first click rather than
+  // following it. Only a click on an already-open parent navigates.
+  await page.mouse.move(700, 700);
+  await page.waitForTimeout(900);
+  const before = page.url();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.waitForTimeout(500);
+  check('nav: first click opens the submenu instead of following the link',
+    (await shown()) === 'block' && page.url() === before);
+
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.waitForTimeout(1200);
+  check('nav: a second click on an open parent follows the link',
+    page.url().endsWith('/services'), page.url());
 
   await page.mouse.click(600, 700);
   await page.waitForTimeout(350);
@@ -107,9 +110,16 @@ for (const width of [900, 390]) {
   check(`burger @${width}: toggle marked active`, await page.evaluate((s) => document.querySelector(s).classList.contains('elementor-active'), toggle));
   check(`burger @${width}: panel stretches to the viewport`, await page.evaluate((s) => Math.abs(document.querySelector(s).getBoundingClientRect().width - document.documentElement.clientWidth) < 2, panel));
 
+  // The parent links point at real pages; if the first click followed them the
+  // submenu would be unreachable on touch. Production expands instead.
+  const beforeUrl = page.url();
   await page.locator(`${panel} .menu-item-has-children > a`).first().click();
-  await page.waitForTimeout(400);
-  check(`burger @${width}: submenu expands in place`, await page.evaluate((s) => getComputedStyle(document.querySelector(s + ' .sub-menu')).display === 'block', panel));
+  await page.waitForTimeout(600);
+  check(`burger @${width}: submenu expands in place instead of navigating`,
+    page.url() === beforeUrl
+    && await page.evaluate((s) => getComputedStyle(document.querySelector(s + ' .sub-menu')).display === 'block', panel));
+  check(`burger @${width}: panel grows to fit the expanded submenu`, (await height()) > openHeight,
+    `${await height()}px vs ${openHeight}px`);
 
   await page.locator(toggle).first().click();
   await page.waitForTimeout(600);
