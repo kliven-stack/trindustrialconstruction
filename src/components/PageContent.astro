@@ -10,8 +10,12 @@
 import ContactForm from './ContactForm.astro';
 import { CONTACT_ENDPOINT, FORM_MODE } from '../config';
 
-interface Props { html: string }
-const { html } = Astro.props as Props;
+interface Props {
+  html: string;
+  /** Names this fragment's region, so a form inside it gets unique field ids. */
+  region?: string;
+}
+const { html, region = 'content' } = Astro.props as Props;
 
 // Without an endpoint the original embed is the working form, so keep it.
 const useOwnForm = FORM_MODE === 'growthmap' && CONTACT_ENDPOINT !== '';
@@ -34,6 +38,6 @@ parts.push({ html: html.slice(cursor) });
 
 {parts.map((part) =>
   'form' in part
-    ? <ContactForm minHeight={HEIGHT} />
+    ? <ContactForm minHeight={HEIGHT} region={region} />
     : <Fragment set:html={part.html} />,
 )}

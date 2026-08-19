@@ -77,7 +77,7 @@ const PRELOAD_FONTS = [
 
     {/* Through PageContent, not a bare Fragment: the footer is where the lead
         form lives on every page. */}
-    {page.footer && <PageContent html={fragment(page.footer)} />}
+    {page.footer && <PageContent html={fragment(page.footer)} region="footer" />}
 
     <script src="../scripts/elementor.js"></script>
   </body>

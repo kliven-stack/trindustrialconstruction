@@ -16,9 +16,15 @@ import { CONTACT_ENDPOINT } from '../config';
 interface Props {
   /** Height of the widget it replaces, so the page geometry does not jump. */
   minHeight: number;
+  /**
+   * Which region this instance renders in. `/contact/` carries two copies of the
+   * widget — one in its content and the footer's, which the theme's custom CSS
+   * hides on that page — so the label/input ids have to differ between them.
+   */
+  region: string;
 }
 
-const { minHeight } = Astro.props as Props;
+const { minHeight, region } = Astro.props as Props;
 
 /**
  * The widget's own field set. Its two free-text questions are stored against
@@ -50,14 +56,14 @@ const FORM_NAME = 'Contact Us Form';
 
     {FIELDS.map((field) => (
       <p class="gm-form__field">
-        <label class="gm-form__label" for={`gm-${field.name}`}>
+        <label class="gm-form__label" for={`gm-${region}-${field.name}`}>
           {field.label} <span aria-hidden="true">*</span>
         </label>
         {field.tag === 'textarea' ? (
-          <textarea id={`gm-${field.name}`} name={field.name} rows={field.rows} required />
+          <textarea id={`gm-${region}-${field.name}`} name={field.name} rows={field.rows} required />
         ) : (
           <input
-            id={`gm-${field.name}`}
+            id={`gm-${region}-${field.name}`}
             name={field.name}
             type={field.type}
             autocomplete={field.autocomplete}

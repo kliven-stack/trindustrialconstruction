@@ -153,7 +153,17 @@ gallery's layout, filtering and re-flow, the entrance animations, and the form.
 
 ### Where it currently stands
 
-<!--RESULTS-->
+Last full run, against production on 2026-08-19:
+
+| Check | Result |
+| --- | --- |
+| `npm run compare` | **132 comparisons — 44 URLs × 3 widths, 9,249 landmark nodes, 0 differences** |
+| `npm run functional` | 46/46 passed |
+| `npm run audit` | 3,551 references across 44 pages and 86 stylesheets; no broken link beyond the 17 production already has |
+| `npm run verify:form` | 11/11 passed against a mock endpoint |
+
+The uploads are re-compressed in place at identical pixel dimensions (28.4 MB →
+19.4 MB), so none of those numbers move when `npm run images` runs.
 
 ---
 
@@ -203,7 +213,19 @@ untracked; `npm run crawl` and `scripts/inspect-live.mjs` restore them.
 Reproduced faithfully rather than quietly fixed (playbook §2). Each has a short fix
 if the client wants it.
 
-<!--BUGS-->
+| Bug | Detail |
+| --- | --- |
+| **Dead links to the old WP Engine host** | 17 distinct URLs on `trindustrial.wpengine.com` — the site's pre-launch address, which now 404s on every path. Six are in the footer's Services and Company columns, so they appear on all 44 pages; the rest are body links on the location and building pages. **Fix:** rewrite the host to `trindustrialconstruction.com`. Note that only some would then resolve — five of them point at `/industries/…` paths that do not exist under that prefix (they live under `/buildings/…`), so those need re-pointing too. |
+| Gallery hides two of its images | `/buildings/car-wash/` has 8 gallery images but Essential Addons renders only its first page of 6, and no "load more" control is printed — the last two are unreachable. **Fix:** set the widget's images-per-page to 8, or enable the load-more button. |
+| Misspelled location slugs | `/locations/hunstville-al/` (the page is titled "Huntsville") and `/locations/athen-al/` ("Athens"). Both are live URLs, so changing them needs redirects. |
+| No meta description on 34 of 44 pages | Yoast only has one for 9 pages plus the home page; the rest fall back to whatever the search engine picks. |
+| Heading structure | The home page and `/services/design-build/` have no `<h1>` at all; `/buildings/`, `/buildings/warehouse/`, `/buildings/hazardous-material-facility/` and `/services/self-performance/` have two. |
+| Every image has an empty `alt` | All 92 `<img>` elements carry `alt=""`, including the ones that carry meaning (project photography, the logo). |
+| Duplicate DOM ids on `/contact/` | The page embeds the contact widget in its content while the footer embeds it again, both as `id="inline-QkHUoEsI0wB7n2egM9ao"`. The footer copy is hidden by a `page-id-54` rule in the theme's custom CSS rather than being removed, so it still loads and still runs the widget. Our own form is rendered twice for the same reason, but its field ids are namespaced per region. |
+| The hero background video is a `.mov` | `/wp-content/uploads/2023/05/1089827977-hd.mov`, 5.8 MB of QuickTime in a `<video>`. It plays in Chrome and Safari and is unreliable elsewhere; an MP4 would be safer. |
+| The contact form is slow to appear | The LeadConnector iframe ships at `height:100%`, which resolves to a ~150px box, and only reaches its real 1,144px after the widget's resizer completes a postMessage handshake — several seconds on a cold load, and the section stays visibly empty until it does. Replacing it with our own form removes the iframe, the handshake and the wait; it is the strongest argument for setting `PUBLIC_CONTACT_ENDPOINT`. |
+| Gallery tiles are not clickable | The filterable galleries carry a "buttons" popup setting, but the buttons container renders empty and no lightbox is loaded, so clicking a photo does nothing. Cloned as-is; the hover caption is the whole interaction. |
+| An empty category archive is still served | `/category/uncategorized/` returns 200 on WordPress with no posts behind it. Nothing links to it and it is not in the sitemap, so it is not migrated — worth noting only because it disappears at cutover. |
 
 ## Deployment
 

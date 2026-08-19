@@ -46,43 +46,52 @@ try {
   await page.goto('http://localhost:4321/contact/', { waitUntil: 'load' });
   await page.waitForTimeout(500);
 
+  // /contact/ renders the form twice — its own copy and the footer's, which the
+  // theme hides on this page. Drive the first one.
+  const form = page.locator('form.gm-form__form').first();
+  const submitButton = form.locator('.gm-form__submit');
+
   check('our form replaced the embed', await page.evaluate(() =>
     !!document.querySelector('form.gm-form__form')
     && !document.querySelector('iframe[src*="verified.trustymail.co/widget/form"]')));
+  check('the two copies on /contact/ do not share field ids', await page.evaluate(() => {
+    const ids = [...document.querySelectorAll('form.gm-form__form [id]')].map((el) => el.id);
+    return ids.length > 0 && new Set(ids).size === ids.length;
+  }));
 
   // Native validation blocks an empty submit.
-  await page.locator('.gm-form__submit').click();
+  await submitButton.click();
   await page.waitForTimeout(400);
   check('empty submit is blocked, nothing sent', received.length === 0);
 
   // Every field the widget asked for, so the whole set round-trips.
   const fill = async (email) => {
-    await page.fill('input[name="first_name"]', 'Test');
-    await page.fill('input[name="last_name"]', 'Person');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="phone"]', '5551234567');
-    await page.fill('textarea[name="project_description"]', 'A 40,000 sq ft warehouse.');
-    await page.fill('input[name="address"]', 'Shelbyville, TN');
-    await page.fill('textarea[name="project_involvement"]', 'Owner');
+    await form.locator('input[name="first_name"]').fill('Test');
+    await form.locator('input[name="last_name"]').fill('Person');
+    await form.locator('input[name="email"]').fill(email);
+    await form.locator('input[name="phone"]').fill('5551234567');
+    await form.locator('textarea[name="project_description"]').fill('A 40,000 sq ft warehouse.');
+    await form.locator('input[name="address"]').fill('Shelbyville, TN');
+    await form.locator('textarea[name="project_involvement"]').fill('Owner');
   };
 
   // Bad email is rejected before anything is sent.
   await fill('not-an-email');
-  await page.locator('.gm-form__submit').click();
+  await submitButton.click();
   await page.waitForTimeout(400);
   check('invalid email is rejected, nothing sent', received.length === 0);
 
   // Honeypot: the visitor sees success, the endpoint sees nothing.
   await fill('test@example.com');
-  await page.evaluate(() => { document.querySelector('input[name="website"]').value = 'spam'; });
-  await page.locator('.gm-form__submit').click();
+  await form.locator('input[name="website"]').evaluate((el) => { el.value = 'spam'; });
+  await submitButton.click();
   await page.waitForTimeout(600);
   check('honeypot: success shown but nothing sent',
-    received.length === 0 && /Thanks/i.test(await page.textContent('.gm-form__status') ?? ''));
+    received.length === 0 && /Thanks/i.test(await form.locator('.gm-form__status').textContent() ?? ''));
 
   // The real path.
   await fill('test@example.com');
-  await page.locator('.gm-form__submit').click();
+  await submitButton.click();
   await page.waitForTimeout(1200);
 
   check('submission reaches the endpoint', received.length === 1, `${received.length} request(s)`);
@@ -92,18 +101,17 @@ try {
   check('payload identifies the form and page',
     body.includes('Contact Us Form') && body.includes('/contact/'));
   check('success message shown, form cleared',
-    /Thanks/i.test(await page.textContent('.gm-form__status') ?? '')
-    && (await page.inputValue('input[name="email"]')) === '');
+    /Thanks/i.test(await form.locator('.gm-form__status').textContent() ?? '')
+    && (await form.locator('input[name="email"]').inputValue()) === '');
 
   // A failing endpoint must surface an error, not a false success.
   await page.route('**/lead', (r) => r.fulfill({ status: 500, body: 'nope' }));
   await fill('test@example.com');
-  await page.locator('.gm-form__submit').click();
+  await submitButton.click();
   await page.waitForTimeout(1000);
   check('endpoint failure shows an error, not success',
-    /wrong/i.test(await page.textContent('.gm-form__status') ?? ''));
-  check('submit button is re-enabled after a failure',
-    !(await page.locator('.gm-form__submit').isDisabled()));
+    /wrong/i.test(await form.locator('.gm-form__status').textContent() ?? ''));
+  check('submit button is re-enabled after a failure', !(await submitButton.isDisabled()));
 
   await ctx.close();
 } finally {
