@@ -10,7 +10,6 @@
  */
 import { chromium } from 'playwright';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import path from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const LIVE = 'https://trindustrialconstruction.com';
@@ -70,21 +69,17 @@ for (const width of widths) {
   await ctx.route('**/*.{mp4,mov,webm}', (r) => r.abort());
   await ctx.route('**://*.googletagmanager.com/**', (r) => r.abort());
   await ctx.route('**://*.google-analytics.com/**', (r) => r.abort());
-  // Third-party form/booking widgets render differently run to run (and the widget
-  // host rate-limits headless traffic), so their iframes are blocked on both sides.
-  // Their boxes are sized by the page's own CSS, so the geometry stays comparable.
-  // Production loads its emoji images from s.w.org, which rate-limits repeated
-  // headless traffic; a failed one falls back to alt text and inflates the line box.
-  // Serve both sides the same mirrored SVG so the geometry is comparable.
-  await ctx.route('**s.w.org/images/core/emoji/**', async (r) => {
-    try {
-      const file = path.join(ROOT, 'public/wp/emoji', path.basename(new URL(r.request().url()).pathname));
-      await r.fulfill({ status: 200, contentType: 'image/svg+xml', body: await readFile(file) });
-    } catch { await r.continue(); }
-  });
-  await ctx.route('**://links.trindustrialconstruction.com/**', (r) => r.abort());
-  await ctx.route('**://*.calendly.com/**', (r) => r.abort());
-  await ctx.route('**://calendly.com/**', (r) => r.abort());
+  // The LeadConnector form widget renders differently run to run and its host
+  // rate-limits headless traffic, so its iframe is blocked on both sides. The
+  // iframe box itself is sized by the page's own CSS, so geometry stays comparable
+  // — and while no Growthmap endpoint is configured both sides serve that same
+  // iframe anyway. Google Maps is blocked for the same reason.
+  await ctx.route('**://verified.trustymail.co/**', (r) => r.abort());
+  // …and the clone's mirrored copy of that widget's loader, or only the clone
+  // would run the iframe resizer and the two sides would size the embed differently.
+  await ctx.route('**/wp/js/**', (r) => r.abort());
+  await ctx.route('**://maps.google.com/**', (r) => r.abort());
+  await ctx.route('**://*.googleapis.com/**', (r) => r.abort());
 
   for (const page of targets) {
     const measure = async (origin) => {
