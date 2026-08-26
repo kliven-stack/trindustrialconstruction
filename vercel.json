@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "//trailingSlash": "Vercel does not enforce trailing slashes on a static build unless told to, so every page was reachable at both /about and /about/ while astro.config.mjs, every internal link and every canonical tag use the slash form. Two URLs per page — and the reason a redirect source written without a slash never matched the canonical form. Every path source below is listed in both spellings, so normalising here is safe.",
+  "trailingSlash": true,
+
   "headers": [
     {
       "source": "/(.*)",
