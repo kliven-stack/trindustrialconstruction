@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "//trailingSlash": "Vercel does not enforce trailing slashes on a static build unless told to, so every page was reachable at both /about and /about/ while astro.config.mjs, every internal link and every canonical tag use the slash form. Two URLs per page — and the reason a redirect source written without a slash never matched the canonical form. Every path source below is listed in both spellings, so normalising here is safe.",
+  "//trailingSlash": "Declared to match astro.config.mjs, and MEASURED NOT TO WORK: Vercel ignores this property on these static deployments — /about still answers 200 rather than redirecting to /about/, seven minutes after deploy. Every page is therefore reachable at two URLs. It is left here as the correct declaration of intent, but the thing actually holding duplicate content together is the canonical tag on every page, which points at the slash form. Fixing it properly would mean the @astrojs/vercel adapter, which the playbook rules out for static sites (§3.3, §3.4).",
   "trailingSlash": true,
 
   "headers": [
