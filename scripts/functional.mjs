@@ -265,6 +265,44 @@ for (const [width, columns] of [[900, 2], [390, 1]]) {
 }
 
 
+/* ------------------------------------------------------------------ redirects */
+{
+  // Every redirect in vercel.json must actually fire, in the exact spelling it is
+  // written in — Vercel matches sources literally, trailing slash included.
+  //
+  // This test exists because that was not true. Sources were written without a
+  // trailing slash while WordPress's canonical URLs have one, so on Vercel the
+  // slash form 404'd: the form in Google's index, in inbound links and in
+  // bookmarks. It passed locally the whole time, because serve.mjs used to
+  // normalise the slash on both sides and was therefore more forgiving than
+  // production. Both spellings are now listed and serve.mjs is strict; this is
+  // what keeps them that way.
+  const { readFile: readVercelJson } = await import('node:fs/promises');
+  const { redirects = [] } = JSON.parse(
+    await readVercelJson(new URL('../vercel.json', import.meta.url), 'utf8'));
+
+  // Checked with fetch rather than a browser: several rules point at PDFs, which a
+  // browser downloads instead of navigating to, and a 3xx is the whole assertion.
+  const dead = [];
+  for (const rule of redirects) {
+    if (rule.has) continue;                    // query-conditional, covered elsewhere
+    const probe = rule.source.replace(/\(\.\*\)/g, 'x').replace(/:\w+\*?/g, 'x');
+    const res = await fetch(ORIGIN + probe, { redirect: 'manual' }).catch(() => null);
+    if (!res || res.status < 300 || res.status >= 400) dead.push(`${probe} -> ${res ? res.status : 'ERR'}`);
+  }
+  check('redirects: every rule in vercel.json fires as written',
+    dead.length === 0, dead.slice(0, 6).join(' | ') || `${redirects.length} rules`);
+
+  // And the pair rule: no path source may be listed in only one spelling.
+  // The root and query-conditional rules are exempt: `/` has no no-slash spelling,
+  // and a `has` rule is keyed on the query string rather than the path.
+  const sources = new Set(redirects.filter((r) => !r.has).map((r) => r.source));
+  const lonely = [...sources].filter((s) => s !== '/' && !/\.\w+$/.test(s)
+    && !(sources.has(s.replace(/\/$/, '')) && sources.has(s.replace(/\/?$/, '/'))));
+  check('redirects: every path source is listed with and without its trailing slash',
+    lonely.length === 0, lonely.slice(0, 6).join(' | '));
+}
+
 await browser.close();
 
 const failed = results.filter((r) => !r.pass);
