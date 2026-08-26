@@ -15,9 +15,17 @@ const CSSDIR = path.join(ROOT, 'public/wp/css');
 const ORIGIN = 'https://trindustrialconstruction.com';
 const ORIGIN_ESC = 'https:\\/\\/trindustrialconstruction.com';
 
-// LeadConnector ("Trustymail") widget ids → the variant of our replacement form.
-// This site embeds exactly one: the "Contact Us Form", which the footer shows on
-// every page and the contact page repeats in its own content.
+/**
+ * The LeadConnector ("Trustymail") lead form, which ships exactly as WordPress
+ * serves it. Nothing here replaces it.
+ *
+ * This site embeds exactly one: the "Contact Us Form", which the footer shows on
+ * every page and the contact page repeats in its own content. GoHighLevel hosts it,
+ * so the embed *is* the working form, and it keeps the `form_embed.js` resizer that
+ * sizes it: the iframe is served with `style="height:100%"`, which on a block-level
+ * iframe resolves to the default 150px, and the resizer is what rewrites that to
+ * the height the form reports from inside the frame — 1,144px on the contact page.
+ */
 const LEAD_FORMS = {
   'QkHUoEsI0wB7n2egM9ao': 'contact',
 };
@@ -108,27 +116,6 @@ function cleanFragment($, $el) {
       $e.attr('style', s.split(ORIGIN).join(''));
     }
   });
-  // The two LeadConnector lead forms are wrapped in markers so the page can swap
-  // in our own static form when a Growthmap endpoint is configured (playbook §4b).
-  // The survey funnel and the Calendly embed stay as they are — they are GoHighLevel
-  // flows on the client's own subdomain, not contact forms.
-  for (const [formId, variant] of Object.entries(LEAD_FORMS)) {
-    $el.find(`iframe[src*="${formId}"]`).each((i, el) => {
-      const $frame = $(el);
-      // Wrap the whole HTML widget, so swapping in our form also drops the embed's
-      // loader script rather than leaving it hunting for an iframe that is gone.
-      const $widget = $frame.closest('[data-widget_type="html.default"]');
-      const $target = $widget.length ? $widget : $frame;
-      if ($widget.length) {
-        $widget.prepend(`<!--gm-form:${variant}:start-->`);
-        $widget.append(`<!--gm-form:${variant}:end-->`);
-      } else {
-        $target.before(`<!--gm-form:${variant}:start-->`);
-        $target.after(`<!--gm-form:${variant}:end-->`);
-      }
-    });
-  }
-
   // WordPress-only endpoints that do not exist on the clone.
   $el.find('a[href^="/feed"], a[href^="/wp-json"], a[href^="/xmlrpc.php"]').each((i, el) => {
     $(el).attr('href', '/');

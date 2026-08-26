@@ -23,3 +23,6 @@ _extract/spot-*.json
 
 # form/widget probes
 _extract/form/
+
+# comparison screenshots — regenerate with the harness
+_extract/shots/

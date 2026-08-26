@@ -248,25 +248,19 @@ for (const [width, columns] of [[900, 2], [390, 1]]) {
 
 /* ---------------------------------------------------------------- contact form */
 {
+  // The form ships as WordPress serves it: the LeadConnector iframe *and* the
+  // `form_embed.js` resizer that sizes it. The resizer is not optional — the iframe
+  // is served with `style="height:100%"`, which on a block-level iframe resolves to
+  // the default 150px, and the resizer is what rewrites that to the height the form
+  // reports from inside the frame (1,144px here, measured on production). Without
+  // it the form renders clipped.
   const { ctx, page } = await open('/contact/');
-  const hasForm = await page.evaluate(() => !!document.querySelector('form.gm-form__form'));
-  if (hasForm) {
-    check('form: honeypot is hidden from people', await page.evaluate(() => {
-      const hp = document.querySelector('input[name="website"]');
-      return hp.getBoundingClientRect().width <= 1 && hp.tabIndex === -1;
-    }));
-    check('form: required fields block submission', await page.evaluate(() => {
-      const form = document.querySelector('form.gm-form__form');
-      return !form.checkValidity();
-    }));
-    check("form: carries the widget's seven fields", await page.evaluate(() =>
-      document.querySelectorAll('form.gm-form__form .gm-form__field').length === 7));
-  } else {
-    check('form: LeadConnector embed retained while no endpoint is configured', await page.evaluate(() =>
-      !!document.querySelector('iframe[src*="verified.trustymail.co/widget/form"]')));
-    check('form: the embed is on every page, via the footer', await page.evaluate(() =>
-      !!document.querySelector('footer iframe[src*="verified.trustymail.co"]')));
-  }
+  check('form: the contact page ships the LeadConnector embed', await page.evaluate(() =>
+    !!document.querySelector('iframe[src*="verified.trustymail.co/widget/form"]')));
+  check('form: the embed is on every page, via the footer', await page.evaluate(() =>
+    !!document.querySelector('footer iframe[src*="verified.trustymail.co"]')));
+  check('form: a loader ships with it',
+    (await page.$$('script[src*="form_embed"], script[src^="/wp/js/"]')).length >= 1);
   await ctx.close();
 }
 

@@ -9,7 +9,6 @@
  */
 import type { PageRecord } from '../lib/pages';
 import { fragment } from '../lib/pages';
-import PageContent from '../components/PageContent.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -72,12 +71,10 @@ const PRELOAD_FONTS = [
     {page.header && <Fragment set:html={fragment(page.header)} />}
 
     <slot>
-      <PageContent html={fragment(page.content)} />
+      <Fragment set:html={fragment(page.content)} />
     </slot>
 
-    {/* Through PageContent, not a bare Fragment: the footer is where the lead
-        form lives on every page. */}
-    {page.footer && <PageContent html={fragment(page.footer)} region="footer" />}
+    {page.footer && <Fragment set:html={fragment(page.footer)} />}
 
     <script src="../scripts/elementor.js"></script>
   </body>

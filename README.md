@@ -36,7 +36,6 @@ src/
   pages/[...slug].astro  one route renders every cloned URL
   pages/404.astro        the theme's 404 template → dist/404.html
   scripts/elementor.js   replaces all of the WordPress JavaScript
-  components/            ContactForm, PageContent
 public/
   wp/css/                86 stylesheet handles + inline blocks, unmodified apart
                          from url() targets (see below)
@@ -87,8 +86,6 @@ the live site's post-init DOM with `scripts/inspect-live.mjs`:
 | Variable | Purpose |
 | --- | --- |
 | `PUBLIC_SITE_URL` | canonical URLs, the Yoast block's origin, and the sitemap. Defaults to the production domain. |
-| `PUBLIC_CONTACT_ENDPOINT` | Growthmap lead endpoint the form POSTs to (playbook §4b). **Not yet set.** |
-| `PUBLIC_FORM_MODE` | `growthmap` (default) or `embed` to force the original iframe back. |
 
 See `.env.example`.
 
@@ -101,20 +98,21 @@ iframe, served from `verified.trustymail.co` — the "Contact Us Form". `/contac
 embeds a second copy in its own content and hides the footer one with a
 `page-id-54` rule in the theme's custom CSS.
 
-- `src/components/ContactForm.astro` implements the playbook §4b pattern — a static
-  form that POSTs FormData straight to `PUBLIC_CONTACT_ENDPOINT`, with a honeypot,
-  `aria-live` status, in-flight button disable and native validation. Its seven
-  fields, labels, order and styling were read off the live widget with
-  `scripts/inspect-form.mjs`, and it reserves the widget's measured height so the
-  section's geometry does not move.
-- **While `PUBLIC_CONTACT_ENDPOINT` is empty the original embed is kept**, so a
-  deploy before the endpoint exists never ships a dead form. Set the variable in
-  Vercel and our form takes over on the next build; `PUBLIC_FORM_MODE=embed` forces
-  the embed back.
+**It ships exactly as WordPress serves it, and is not rebuilt.** The widget is a
+GoHighLevel-hosted flow rather than a WordPress plugin, so unlike playbook §7.5's
+case it does not die with the install — the embed *is* the working form, and it
+keeps working after cutover; it just stops being ours to route.
 
-The widget is a GoHighLevel-hosted flow rather than a WordPress plugin, so unlike
-playbook §7.5's case it does not die with the WordPress install — which is what
-makes keeping it as the fallback safe.
+It ships with its `form_embed.js` resizer, and that detail is load-bearing rather
+than incidental: the iframe is served with `style="height:100%"`, which on a
+block-level iframe resolves to the default 150px. The resizer is what receives the
+rendered height from inside the frame and rewrites the inline style to it — 1,144px
+on `/contact/`, measured on production. Drop it and the form renders clipped to a
+sliver. `npm run functional` asserts the embed on both placements and the loader.
+
+`npm run form:inspect` reads what the widget actually renders — seven fields, their
+labels, order and styling — which is how you check the embed still works after
+cutover without clicking through the site.
 
 ---
 
@@ -223,7 +221,7 @@ if the client wants it.
 | Every image has an empty `alt` | All 92 `<img>` elements carry `alt=""`, including the ones that carry meaning (project photography, the logo). |
 | Duplicate DOM ids on `/contact/` | The page embeds the contact widget in its content while the footer embeds it again, both as `id="inline-QkHUoEsI0wB7n2egM9ao"`. The footer copy is hidden by a `page-id-54` rule in the theme's custom CSS rather than being removed, so it still loads and still runs the widget. Our own form is rendered twice for the same reason, but its field ids are namespaced per region. |
 | The hero background video is a `.mov` | `/wp-content/uploads/2023/05/1089827977-hd.mov`, 5.8 MB of QuickTime in a `<video>`. It plays in Chrome and Safari and is unreliable elsewhere; an MP4 would be safer. |
-| The contact form is slow to appear | The LeadConnector iframe ships at `height:100%`, which resolves to a ~150px box, and only reaches its real 1,144px after the widget's resizer completes a postMessage handshake — several seconds on a cold load, and the section stays visibly empty until it does. Replacing it with our own form removes the iframe, the handshake and the wait; it is the strongest argument for setting `PUBLIC_CONTACT_ENDPOINT`. |
+| The contact form is slow to appear | The LeadConnector iframe ships at `height:100%`, which resolves to a ~150px box, and only reaches its real 1,144px after the widget's resizer completes a postMessage handshake — several seconds on a cold load, and the section stays visibly empty until it does. This is the widget's own behaviour and the clone reproduces it. *Fix:* give the wrapper a `min-height` of 1,144px so the space is reserved before the handshake, or ask GoHighLevel for a fixed-height embed. Either changes the section's collapsed height, so the client should sign it off. |
 | Gallery tiles are not clickable | The filterable galleries carry a "buttons" popup setting, but the buttons container renders empty and no lightbox is loaded, so clicking a photo does nothing. Cloned as-is; the hover caption is the whole interaction. |
 | An empty category archive is still served | `/category/uncategorized/` returns 200 on WordPress with no posts behind it. Nothing links to it and it is not in the sitemap, so it is not migrated — worth noting only because it disappears at cutover. |
 
@@ -234,5 +232,6 @@ carries the security headers plus the redirects WordPress used to handle: the fi
 `/building/…` (singular) URLs the location pages link to, which WordPress 301s to
 `/buildings/…`, and the old Yoast sitemap addresses.
 
-Before cutover, set `PUBLIC_CONTACT_ENDPOINT` and redeploy so the Growthmap form
-replaces the LeadConnector embed.
+There is nothing to configure for the form — it ships as WordPress serves it. A
+human should submit it once end to end; it posts to GoHighLevel, not to this site,
+so it behaves identically before and after cutover.
