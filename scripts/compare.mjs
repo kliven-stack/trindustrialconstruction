@@ -95,6 +95,21 @@ for (const width of widths) {
         await tab.waitForTimeout(1200);
         await tab.evaluate(() => window.scrollTo(0, 0));
         await tab.waitForTimeout(800);
+        // Then wait for the images themselves, rather than assuming the scrolling
+        // above was enough. It is off localhost; it is not over the internet, and
+        // against the deployments the image-heavy pages measured mid-decode and
+        // reported geometry diffs that vanished on a re-run. A half-loaded image
+        // has no layout box yet, so this is the difference between measuring the
+        // page and measuring the network.
+        await tab.evaluate(async () => {
+          const pending = () => [...document.images].filter((i) => !i.complete);
+          for (let i = 0; i < 60 && pending().length; i++) {
+            await new Promise((r) => setTimeout(r, 250));
+          }
+          await Promise.all([...document.images]
+            .filter((i) => i.currentSrc)
+            .map((i) => i.decode().catch(() => {})));
+        });
         // Carousels autoplay on both sides; pin them to the first slide last of
         // all so the geometry diff is deterministic.
         await tab.evaluate(() => {
