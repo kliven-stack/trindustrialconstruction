@@ -127,7 +127,6 @@ node scripts/serve.mjs &      # serves dist/ on :4321, like production
 npm run compare               # computed-style + bounding-box diff vs production
 npm run functional            # behaviour the style diff cannot see
 npm run audit                 # every internal link and asset resolves in dist/
-npm run verify:form           # the Growthmap form path, against a mock endpoint
 ```
 
 `compare` loads each page from production and from the clone at **1440 / 900 /
@@ -156,9 +155,8 @@ Last full run, against production on 2026-08-19:
 | Check | Result |
 | --- | --- |
 | `npm run compare` | **132 comparisons — 44 URLs × 3 widths, 9,249 landmark nodes, 0 differences** |
-| `npm run functional` | 46/46 passed |
+| `npm run functional` | 47/47 passed |
 | `npm run audit` | 3,551 references across 44 pages and 86 stylesheets; no broken link beyond the 17 production already has |
-| `npm run verify:form` | 11/11 passed against a mock endpoint |
 
 The uploads are re-compressed in place at identical pixel dimensions (28.4 MB →
 19.4 MB), so none of those numbers move when `npm run images` runs.
