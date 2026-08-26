@@ -29,9 +29,20 @@ const fineMove = async (page, x, y) => {
 const open = async (path, width = 1440, height = 900) => {
   const ctx = await browser.newContext({ viewport: { width, height } });
   await ctx.route('**/*.{mp4,mov,webm}', (r) => r.abort());
+  // The LeadConnector contact embed is in the footer of every page, and it is not
+  // under test here — the form checks assert the iframe and its loader are present
+  // in the markup, which does not need the vendor to answer. Blocked because it is
+  // also what kept `load` from ever firing: against the live deployment, where the
+  // embed really loads, every page.goto() timed out at 30s while the page itself
+  // had answered in 250ms (playbook §7.6).
+  await ctx.route('**://verified.trustymail.co/**', (r) => r.abort());
+  await ctx.route('**://*.leadconnectorhq.com/**', (r) => r.abort());
   const page = await ctx.newPage();
   await page.bringToFront();
-  await page.goto(ORIGIN + path, { waitUntil: 'load' });
+  // `domcontentloaded`, not `load`: a third party can hold `load` open for as long
+  // as it likes, and nothing asserted below depends on it.
+  await page.goto(ORIGIN + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await page.waitForLoadState('load', { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(600);
   return { ctx, page };
 };
@@ -76,10 +87,19 @@ const open = async (path, width = 1440, height = 900) => {
   check('nav: first click opens the submenu instead of following the link',
     (await shown()) === 'block' && page.url() === before);
 
+  // Waited on, not slept through. This click causes a real navigation, and a fixed
+  // 1200ms is a guess about the network rather than a fact about the page: against
+  // a live deployment it expired mid-navigation and took the two checks after it
+  // down with it, on a different pair each run.
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-  await page.waitForTimeout(1200);
+  await page.waitForURL(/\/services\/?$/, { timeout: 30000 }).catch(() => {});
+  await page.waitForLoadState('load').catch(() => {});
   check('nav: a second click on an open parent follows the link',
-    page.url().endsWith('/services'), page.url());
+    /\/services\/?$/.test(new URL(page.url()).pathname), page.url());
+
+  // The runtime annotates the nav on DOMContentLoaded; on the freshly loaded page
+  // that may not have happened yet. Wait for its own marker rather than a timeout.
+  await page.waitForSelector(`${parent} > a.has-submenu`, { timeout: 15000 }).catch(() => {});
 
   await page.mouse.click(600, 700);
   await page.waitForTimeout(350);
